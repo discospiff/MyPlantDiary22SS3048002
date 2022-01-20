@@ -58,3 +58,11 @@ Then I should receive zero results (an empty list)
 
 ## Class Diagram
 ![My Plant Diary Class Diagram](https://raw.githubusercontent.com/discospiff/MyPlantDiary22SS3048002/UML/MyPlantDiaryClassDiagram.drawio.png)
+
+## Scrum Roles
+- Product Owner/Scrum Master: Brandan Jones
+- UI Developer: Brandan Jones
+- Integration Specialist: Brandan Jones
+
+## Standup
+Sundays at 8:00 on Teams
