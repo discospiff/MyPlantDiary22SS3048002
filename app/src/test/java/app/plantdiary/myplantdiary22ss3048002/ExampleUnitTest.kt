@@ -1,5 +1,6 @@
 package app.plantdiary.myplantdiary22ss3048002
 
+import app.plantdiary.myplantdiary22ss3048002.dto.Plant
 import org.junit.Test
 
 import org.junit.Assert.*
@@ -23,5 +24,11 @@ class ExampleUnitTest {
     @Test
     fun twoPlusTwo_EqualsFour() {
         assertEquals(4, 2+2)
+    }
+
+    @Test
+    fun easternRedbud_ShouldReturnEasternRedbud() {
+        var plant = Plant("Cercis", "canadensis", "Eastern Redbud")
+        assertEquals("Eastern Redbud", plant.toString())
     }
 }
