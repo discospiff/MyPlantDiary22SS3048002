@@ -19,4 +19,9 @@ class ExampleUnitTest {
     fun onePlusTwo_EqualsThree() {
         assertEquals(3, 1+ 2)
     }
+
+    @Test
+    fun twoPlusTwo_EqualsFour() {
+        assertEquals(4, 2+2)
+    }
 }
