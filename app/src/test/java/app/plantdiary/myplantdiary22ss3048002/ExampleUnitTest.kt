@@ -33,7 +33,7 @@ class ExampleUnitTest {
     }
 
     @Test
-    fun `Given three and four When we add them together Then we get eight` () {
-        assertEquals(8, 3+4)
+    fun `Given three and four When we add them together Then we get seven` () {
+        assertEquals(7, 3+4)
     }
 }
