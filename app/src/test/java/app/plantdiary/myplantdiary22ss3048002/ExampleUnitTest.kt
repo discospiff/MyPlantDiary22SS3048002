@@ -31,4 +31,9 @@ class ExampleUnitTest {
         var plant = Plant("Cercis", "canadensis", "Eastern Redbud")
         assertEquals("Eastern Redbud", plant.toString())
     }
+
+    @Test
+    fun `Given three and four When we add them together Then we get eight` () {
+        assertEquals(8, 3+4)
+    }
 }
