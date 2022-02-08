@@ -1,4 +1,4 @@
-package app.plantdiary
+package app.plantdiary.myplantdiary22ss3048002
 
 import android.content.res.Configuration
 import android.os.Bundle
