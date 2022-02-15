@@ -2,6 +2,7 @@ package app.plantdiary.myplantdiary22ss3048002
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import app.plantdiary.myplantdiary22ss3048002.dto.Plant
+import app.plantdiary.myplantdiary22ss3048002.service.PlantService
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
@@ -77,7 +78,7 @@ class ExampleUnitTest {
     private fun thenPlantCollectionShouldContainCercisCanadensis() {
         assertNotNull(allPlants)
         assertTrue(allPlants!!.isNotEmpty())
-        var containsCercisCanadensis = false;
+        var containsCercisCanadensis = false
         allPlants!!.forEach {
             if (it.genus.equals("Cercis") && it.species.equals("canadensis")) {
                 containsCercisCanadensis = true
