@@ -15,7 +15,7 @@ import org.junit.rules.TestRule
  *
  * See [testing documentation](http://d.android.com/tools/testing).
  */
-class ExampleUnitTest {
+class PlantIntegrationTest {
 
     lateinit var plantService : PlantService
 
