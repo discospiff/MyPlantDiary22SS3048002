@@ -67,4 +67,7 @@ dependencies {
     testImplementation "io.mockk:mockk:1.12.2"
     implementation 'com.squareup.retrofit2:retrofit:2.7.1'
     implementation 'com.squareup.retrofit2:converter-gson:2.7.1'
+    implementation "androidx.compose.runtime:runtime-livedata:$compose_version"
+    implementation "io.insert-koin:koin-android:3.1.4"
+    implementation 'com.squareup.okhttp3:okhttp:4.9.2'
 }

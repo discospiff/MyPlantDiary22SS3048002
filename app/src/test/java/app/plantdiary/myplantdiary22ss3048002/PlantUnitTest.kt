@@ -55,10 +55,10 @@ class PlantUnitTest {
         val redOak = Plant("Quercus", "rubra", "Red Oak")
         plants.add(redOak)
         plants.add(Plant("Quercus", "alba", "White Oak"))
-        plants.add(Plant ("Cercis", "candensis", "Eastern Redbud"))
+        plants.add(Plant ("Cercis", "canadensis", "Eastern Redbud"))
 
         coEvery { mockPlantService.fetchPlants()} returns plants
-
+        mvm = MainViewModel()
         mvm.plantService = mockPlantService
     }
 
