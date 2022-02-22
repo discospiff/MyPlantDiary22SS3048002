@@ -4,12 +4,15 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.plantdiary.myplantdiary22ss3048002.dto.Plant
+import app.plantdiary.myplantdiary22ss3048002.service.IPlantService
 import app.plantdiary.myplantdiary22ss3048002.service.PlantService
 import kotlinx.coroutines.launch
+import org.koin.core.context.GlobalContext.get
+import org.koin.java.KoinJavaComponent.inject
 
-class MainViewModel : ViewModel() {
+class MainViewModel(var plantService: IPlantService = PlantService()) : ViewModel() {
     val plants: MutableLiveData<List<Plant>> = MutableLiveData<List<Plant>>()
-    var plantService: PlantService = PlantService()
+
 
     fun fetchPlants() {
         viewModelScope.launch {

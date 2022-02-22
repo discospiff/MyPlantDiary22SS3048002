@@ -58,8 +58,8 @@ class PlantUnitTest {
         plants.add(Plant ("Cercis", "canadensis", "Eastern Redbud"))
 
         coEvery { mockPlantService.fetchPlants()} returns plants
-        mvm = MainViewModel()
-        mvm.plantService = mockPlantService
+        mvm = MainViewModel(mockPlantService)
+
     }
 
     private fun whenPlantServiceFetchCountriesInvoked() {
