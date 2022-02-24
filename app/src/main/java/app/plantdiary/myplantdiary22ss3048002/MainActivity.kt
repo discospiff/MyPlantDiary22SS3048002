@@ -22,6 +22,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.window.PopupProperties
 import app.plantdiary.myplantdiary22ss3048002.R
 import app.plantdiary.myplantdiary22ss3048002.dto.Plant
+import app.plantdiary.myplantdiary22ss3048002.dto.Specimen
 import app.plantdiary.myplantdiary22ss3048002.ui.theme.MyPlantDiary22SS3048002Theme
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
@@ -53,35 +54,36 @@ class MainActivity : ComponentActivity() {
     @Composable
     fun SpecimenFacts(name: String, plants: List<Plant> = ArrayList<Plant>()) {
         var plantName by remember { mutableStateOf("") }
-        var location by remember { mutableStateOf("") }
-        var description by remember { mutableStateOf("") }
-        var datePlanted by remember { mutableStateOf("") }
+        var inLocation by remember { mutableStateOf("") }
+        var inDescription by remember { mutableStateOf("") }
+        var inDatePlanted by remember { mutableStateOf("") }
         val context = LocalContext.current
         Column {
             TextFieldWithDropdownUsage(plants)
             OutlinedTextField(
-                value = location,
-                onValueChange = { location = it },
+                value = inLocation,
+                onValueChange = { inLocation = it },
                 label = { Text(stringResource(R.string.location)) },
                 modifier = Modifier.fillMaxWidth()
             )
             OutlinedTextField(
-                value = description,
-                onValueChange = { description = it },
+                value = inDescription,
+                onValueChange = { inDescription = it },
                 label = { Text(stringResource(R.string.description)) },
                 modifier = Modifier.fillMaxWidth()
             )
             OutlinedTextField(
-                value = datePlanted,
-                onValueChange = { datePlanted = it },
+                value = inDatePlanted,
+                onValueChange = { inDatePlanted = it },
                 label = { Text(stringResource(R.string.datePlanted)) },
                 modifier = Modifier.fillMaxWidth()
             )
             Button(
                 onClick = {
+                    var specimen = Specimen(plantName = inPlantName, location = inLocation, description = inDescription)
                     Toast.makeText(
                         context,
-                        "$plantName $location $description $datePlanted",
+                        "$plantName $inLocation $inDescription $inDatePlanted",
                         Toast.LENGTH_LONG
                     ).show()
                 }
