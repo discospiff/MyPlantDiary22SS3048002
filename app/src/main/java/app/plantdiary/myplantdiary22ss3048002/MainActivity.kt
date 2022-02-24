@@ -53,7 +53,6 @@ class MainActivity : ComponentActivity() {
 
     @Composable
     fun SpecimenFacts(name: String, plants: List<Plant> = ArrayList<Plant>()) {
-        var plantName by remember { mutableStateOf("") }
         var inLocation by remember { mutableStateOf("") }
         var inDescription by remember { mutableStateOf("") }
         var inDatePlanted by remember { mutableStateOf("") }
@@ -80,10 +79,18 @@ class MainActivity : ComponentActivity() {
             )
             Button(
                 onClick = {
-                    var specimen = Specimen(plantName = inPlantName, location = inLocation, description = inDescription)
+                    var specimen = Specimen().apply {
+                        plantName = inPlantName
+                        plantID = selectedPlant?.let {
+                            it.id
+                        } ?: 0
+                        location = inLocation
+                        description = inDescription
+                        datePlanted = inDatePlanted
+                    }
                     Toast.makeText(
                         context,
-                        "$plantName $inLocation $inDescription $inDatePlanted",
+                        "Specimen: ${specimen.toString()}",
                         Toast.LENGTH_LONG
                     ).show()
                 }
