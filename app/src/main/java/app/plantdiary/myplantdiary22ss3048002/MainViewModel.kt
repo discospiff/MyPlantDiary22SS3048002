@@ -16,12 +16,14 @@ import org.koin.java.KoinJavaComponent.inject
 
 class MainViewModel(var plantService: IPlantService = PlantService()) : ViewModel() {
     val plants: MutableLiveData<List<Plant>> = MutableLiveData<List<Plant>>()
+    val specimens: MutableLiveData<List<Specimen>> = MutableLiveData<List<Specimen>>()
 
     private lateinit var firestore: FirebaseFirestore
 
     init {
         firestore = FirebaseFirestore.getInstance()
         firestore.firestoreSettings = FirebaseFirestoreSettings.Builder().build()
+        listenToSpecimens()
     }
 
     fun fetchPlants() {
@@ -36,5 +38,29 @@ class MainViewModel(var plantService: IPlantService = PlantService()) : ViewMode
         val handle = document.set(specimen)
         handle.addOnSuccessListener { Log.d("Firebase", "Document Saved") }
         handle.addOnFailureListener { Log.e("Firebase", "Save failed $it  ") }
+    }
+
+    fun listenToSpecimens() {
+        firestore.collection("specimens").addSnapshotListener {
+                snapshot, error ->
+            // see of we received an error
+            if (error != null) {
+                Log.w("listen failed.", error)
+                return@addSnapshotListener
+            }
+            // if we reached this point, there was not an error, and we have data.
+            snapshot?.let {
+                val allSpecimens = ArrayList<Specimen>()
+                val documents = snapshot.documents
+                documents.forEach {
+                    val specimen = it.toObject(Specimen::class.java)
+                    specimen?.let {
+                        allSpecimens.add(specimen)
+                    }
+                }
+                // we have a populated collection of specimens.
+                specimens.value = allSpecimens
+            }
+        }
     }
 }

@@ -44,10 +44,8 @@ class MainActivity : ComponentActivity() {
             val plants by viewModel.plants.observeAsState(initial = emptyList())
 
             // create some temporary dummy specimen data
-            val specimens = ArrayList<Specimen>()
-            specimens.add(Specimen(plantName = "Beautiful Redbud"))
-            specimens.add(Specimen(plantName = "Flowering Cherry"))
-            specimens.add(Specimen(plantName = "Large Red Oak"))
+            val specimens by viewModel.specimens.observeAsState(initial = emptyList())
+
             MyPlantDiary22SS3048002Theme {
                 // A surface container using the 'background' color from the theme
                 Surface(
