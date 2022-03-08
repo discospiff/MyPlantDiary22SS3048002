@@ -32,7 +32,7 @@ import app.plantdiary.myplantdiary22ss3048002.ui.theme.MyPlantDiary22SS3048002Th
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class MainActivity : ComponentActivity() {
-    private var selectedSpecimen by mutableStateOf(Specimen())
+
     private val viewModel: MainViewModel by viewModel<MainViewModel>()
     private var inPlantName: String = ""
     private var selectedPlant : Plant? = null
@@ -52,7 +52,7 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colors.background,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    SpecimenFacts("Android", plants, specimens, selectedSpecimen)
+                    SpecimenFacts("Android", plants, specimens, viewModel.selectedSpecimen)
                 }
                 var foo = plants
                 var i = 1 + 1
@@ -90,7 +90,7 @@ class MainActivity : ComponentActivity() {
             )
             Button(
                 onClick = {
-                    var specimen = Specimen().apply {
+                    viewModel.selectedSpecimen.apply {
                         plantName = inPlantName
                         plantID = selectedPlant?.let {
                             it.id
@@ -99,10 +99,10 @@ class MainActivity : ComponentActivity() {
                         description = inDescription
                         datePlanted = inDatePlanted
                     }
-                    viewModel.save(specimen)
+                    viewModel.saveSpecimen()
                     Toast.makeText(
                         context,
-                        "Specimen: ${specimen.toString()}",
+                        "Specimen: ${viewModel.selectedSpecimen.toString()}",
                         Toast.LENGTH_LONG
                     ).show()
                 }
@@ -184,6 +184,7 @@ class MainActivity : ComponentActivity() {
                             )
                         )
                         selectedPlant = text
+
                     }) {
                         Text(text = text.toString())
                     }
@@ -213,7 +214,7 @@ class MainActivity : ComponentActivity() {
                         specimen -> DropdownMenuItem( onClick = {
                            expanded = false
                         specimenText = specimen.toString()
-                        selectedSpecimen = specimen
+                        viewModel.selectedSpecimen = specimen
 
                     }) {
                             Text (text = specimen.toString())

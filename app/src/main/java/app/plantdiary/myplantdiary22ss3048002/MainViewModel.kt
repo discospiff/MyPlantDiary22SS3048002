@@ -1,6 +1,9 @@
 package app.plantdiary.myplantdiary22ss3048002
 
 import android.util.Log
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -17,6 +20,7 @@ import org.koin.java.KoinJavaComponent.inject
 class MainViewModel(var plantService: IPlantService = PlantService()) : ViewModel() {
     val plants: MutableLiveData<List<Plant>> = MutableLiveData<List<Plant>>()
     val specimens: MutableLiveData<List<Specimen>> = MutableLiveData<List<Specimen>>()
+    var selectedSpecimen by mutableStateOf(Specimen())
 
     private lateinit var firestore: FirebaseFirestore
 
@@ -33,9 +37,17 @@ class MainViewModel(var plantService: IPlantService = PlantService()) : ViewMode
         }
     }
 
-    fun save(specimen: Specimen) {
-        val document = firestore.collection("specimens").document()
-        val handle = document.set(specimen)
+    fun saveSpecimen() {
+        val document = if (selectedSpecimen.specimenID == null || selectedSpecimen.specimenID.isEmpty()) {
+            // insert
+            firestore.collection("specimens").document()
+        } else {
+            // update
+            firestore.collection("specimens").document(selectedSpecimen.specimenID)
+        }
+
+        selectedSpecimen.specimenID = document.id
+        val handle = document.set(selectedSpecimen)
         handle.addOnSuccessListener { Log.d("Firebase", "Document Saved") }
         handle.addOnFailureListener { Log.e("Firebase", "Save failed $it  ") }
     }
