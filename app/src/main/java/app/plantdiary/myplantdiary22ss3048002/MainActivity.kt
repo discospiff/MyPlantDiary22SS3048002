@@ -32,7 +32,7 @@ import app.plantdiary.myplantdiary22ss3048002.ui.theme.MyPlantDiary22SS3048002Th
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class MainActivity : ComponentActivity() {
-    private var selectedSpecimen  = Specimen()
+    private var selectedSpecimen by mutableStateOf(Specimen())
     private val viewModel: MainViewModel by viewModel<MainViewModel>()
     private var inPlantName: String = ""
     private var selectedPlant : Plant? = null
@@ -52,7 +52,7 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colors.background,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    SpecimenFacts("Android", plants, specimens)
+                    SpecimenFacts("Android", plants, specimens, selectedSpecimen)
                 }
                 var foo = plants
                 var i = 1 + 1
@@ -62,14 +62,14 @@ class MainActivity : ComponentActivity() {
 
 
     @Composable
-    fun SpecimenFacts(name: String, plants: List<Plant> = ArrayList<Plant>(), specimens : List<Specimen> = ArrayList<Specimen>()) {
-        var inLocation by remember { mutableStateOf("") }
-        var inDescription by remember { mutableStateOf("") }
-        var inDatePlanted by remember { mutableStateOf("") }
+    fun SpecimenFacts(name: String, plants: List<Plant> = ArrayList<Plant>(), specimens : List<Specimen> = ArrayList<Specimen>(), selectedSpecimen : Specimen = Specimen()) {
+        var inLocation by remember (selectedSpecimen.specimenID) { mutableStateOf(selectedSpecimen.location) }
+        var inDescription by remember(selectedSpecimen.specimenID) { mutableStateOf(selectedSpecimen.description) }
+        var inDatePlanted by remember(selectedSpecimen.specimenID) { mutableStateOf(selectedSpecimen.datePlanted) }
         val context = LocalContext.current
         Column {
             SpecimenSpinner(specimens = specimens)
-            TextFieldWithDropdownUsage(plants)
+            TextFieldWithDropdownUsage(plants, "Select a Plant", 3, selectedSpecimen)
             OutlinedTextField(
                 value = inLocation,
                 onValueChange = { inLocation = it },
@@ -113,10 +113,10 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
-    fun TextFieldWithDropdownUsage(dataIn: List<Plant>, label: String = "", take: Int = 3) {
+    fun TextFieldWithDropdownUsage(dataIn: List<Plant>, label: String = "", take: Int = 3, selectedSpecimen: Specimen = Specimen()) {
 
         val dropDownOptions = remember { mutableStateOf(listOf<Plant>()) }
-        val textFieldValue = remember { mutableStateOf(TextFieldValue()) }
+        val textFieldValue = remember(selectedSpecimen.specimenID) { mutableStateOf(TextFieldValue(selectedSpecimen.plantName)) }
         val dropDownExpanded = remember { mutableStateOf(false) }
 
         fun onDropdownDismissRequest() {
