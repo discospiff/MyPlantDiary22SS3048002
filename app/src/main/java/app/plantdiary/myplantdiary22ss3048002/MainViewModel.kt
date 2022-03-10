@@ -21,6 +21,7 @@ class MainViewModel(var plantService: IPlantService = PlantService()) : ViewMode
     val plants: MutableLiveData<List<Plant>> = MutableLiveData<List<Plant>>()
     val specimens: MutableLiveData<List<Specimen>> = MutableLiveData<List<Specimen>>()
     var selectedSpecimen by mutableStateOf(Specimen())
+    val NEW_SPECIMEN = "New Specimen"
 
     private lateinit var firestore: FirebaseFirestore
 
@@ -63,6 +64,7 @@ class MainViewModel(var plantService: IPlantService = PlantService()) : ViewMode
             // if we reached this point, there was not an error, and we have data.
             snapshot?.let {
                 val allSpecimens = ArrayList<Specimen>()
+                allSpecimens.add(Specimen(NEW_SPECIMEN))
                 val documents = snapshot.documents
                 documents.forEach {
                     val specimen = it.toObject(Specimen::class.java)

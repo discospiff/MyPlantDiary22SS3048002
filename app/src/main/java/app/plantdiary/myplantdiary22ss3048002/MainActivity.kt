@@ -213,7 +213,17 @@ class MainActivity : ComponentActivity() {
                     specimens.forEach {
                         specimen -> DropdownMenuItem( onClick = {
                            expanded = false
-                        specimenText = specimen.toString()
+                        if (specimen.plantName == viewModel.NEW_SPECIMEN) {
+                            // create a new specimen object
+                            specimenText = ""
+                            specimen.plantName = ""
+                        } else {
+                            // we have selected an existing specimen.
+                            specimenText = specimen.toString()
+                            selectedPlant = Plant(genus = "", species = "", common = specimen.plantName, id = specimen.plantID)
+                            inPlantName = specimen.plantName
+                        }
+
                         viewModel.selectedSpecimen = specimen
 
                     }) {
