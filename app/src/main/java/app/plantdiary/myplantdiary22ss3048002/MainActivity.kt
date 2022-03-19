@@ -29,6 +29,9 @@ import app.plantdiary.myplantdiary22ss3048002.R
 import app.plantdiary.myplantdiary22ss3048002.dto.Plant
 import app.plantdiary.myplantdiary22ss3048002.dto.Specimen
 import app.plantdiary.myplantdiary22ss3048002.ui.theme.MyPlantDiary22SS3048002Theme
+import com.firebase.ui.auth.AuthUI
+import com.firebase.ui.auth.FirebaseAuthUIActivityResultContract
+import com.firebase.ui.auth.data.model.FirebaseAuthUIAuthenticationResult
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class MainActivity : ComponentActivity() {
@@ -109,8 +112,35 @@ class MainActivity : ComponentActivity() {
             ) {
                 Text(text = "Save")
             }
+            Button (
+                onClick = {
+                    signOn()
+                }
+                    ) {
+                Text(text = "Logon")
+            }
         }
     }
+
+    private fun signOn() {
+        val providers = arrayListOf(
+            AuthUI.IdpConfig.EmailBuilder().build()
+        )
+        val signInIntent = AuthUI.getInstance()
+            .createSignInIntentBuilder()
+            .setAvailableProviders(providers)
+            .build()
+        signInLauncher.launch(signInIntent)
+    }
+
+    private val signInLauncher =
+        registerForActivityResult(FirebaseAuthUIActivityResultContract())
+        { res -> this.signInResult(res)}
+
+    private fun signInResult(res: FirebaseAuthUIAuthenticationResult?) {
+        TODO("Not yet implemented")
+    }
+
 
     @Composable
     fun TextFieldWithDropdownUsage(dataIn: List<Plant>, label: String = "", take: Int = 3, selectedSpecimen: Specimen = Specimen()) {
