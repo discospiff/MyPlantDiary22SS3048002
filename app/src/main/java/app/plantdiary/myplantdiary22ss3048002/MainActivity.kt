@@ -210,6 +210,7 @@ class MainActivity : ComponentActivity() {
                 Log.i(TAG, "Image Location: $uri")
                 strUri = uri.toString()
                 val photo = Photo(localUri = uri.toString())
+                viewModel.photos.add(photo)
              } else {
                  Log.e(TAG, "Image not saved $uri")
             }
