@@ -1,5 +1,7 @@
 package app.plantdiary.myplantdiary22ss3048002
 
+import android.content.ContentValues.TAG
+import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -7,6 +9,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import app.plantdiary.myplantdiary22ss3048002.dto.Photo
 import app.plantdiary.myplantdiary22ss3048002.dto.Plant
 import app.plantdiary.myplantdiary22ss3048002.dto.Specimen
 import app.plantdiary.myplantdiary22ss3048002.dto.User
@@ -14,17 +17,20 @@ import app.plantdiary.myplantdiary22ss3048002.service.IPlantService
 import app.plantdiary.myplantdiary22ss3048002.service.PlantService
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreSettings
+import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.launch
 import org.koin.core.context.GlobalContext.get
 import org.koin.java.KoinJavaComponent.inject
 
 class MainViewModel(var plantService: IPlantService = PlantService()) : ViewModel() {
+    val photos: ArrayList<Photo> = ArrayList<Photo>()
     var user: User? = null
     val plants: MutableLiveData<List<Plant>> = MutableLiveData<List<Plant>>()
     val specimens: MutableLiveData<List<Specimen>> = MutableLiveData<List<Specimen>>()
     var selectedSpecimen by mutableStateOf(Specimen())
     val NEW_SPECIMEN = "New Specimen"
 
+    private val storageReference = FirebaseStorage.getInstance().getReference()
     private lateinit var firestore: FirebaseFirestore
 
     init {
@@ -52,8 +58,49 @@ class MainViewModel(var plantService: IPlantService = PlantService()) : ViewMode
 
         selectedSpecimen.specimenID = document.id
         val handle = document.set(selectedSpecimen)
-        handle.addOnSuccessListener { Log.d("Firebase", "Document Saved") }
+        handle.addOnSuccessListener {
+            Log.d("Firebase", "Document Saved")
+            if (photos.isNotEmpty()) {
+                uploadPhotos()
+            }
+        }
         handle.addOnFailureListener { Log.e("Firebase", "Save failed $it  ") }
+        }
+    }
+
+    private fun uploadPhotos() {
+        photos.forEach {
+            photo ->
+            var uri = Uri.parse(photo.localUri)
+            val imageRef = storageReference.child("images/${user?.uid}/${uri.lastPathSegment}")
+            val uploadTask = imageRef.putFile(uri)
+            uploadTask.addOnSuccessListener {
+                val downloadUrl = imageRef.downloadUrl
+                downloadUrl.addOnSuccessListener {
+                    remoteUri ->
+                    photo.remoteUri = remoteUri.toString()
+                    updatePhotoDatabase(photo)
+                }
+            }
+            uploadTask.addOnFailureListener {
+                Log.e(TAG, it.message ?: "Unknown error.")
+            }
+        }
+    }
+
+    private fun updatePhotoDatabase(photo: Photo) {
+        user?.let { user ->
+            val photoCollection =
+                firestore.collection("users").document(user.uid).collection("specimens")
+                    .document(selectedSpecimen.specimenID).collection("photos")
+            val handle = photoCollection.add(photo)
+            handle.addOnSuccessListener {
+                Log.i(TAG, "Successfully updated photo metadata")
+                photo.id = it.id
+                firestore.collection("users").document(user.uid).collection("specimens")
+                    .document(selectedSpecimen.specimenID).collection("photos").document(photo.id)
+                    .set(photo)
+            }
         }
     }
 

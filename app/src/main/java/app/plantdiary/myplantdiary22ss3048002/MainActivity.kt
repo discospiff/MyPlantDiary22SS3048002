@@ -1,11 +1,16 @@
 package app.plantdiary.myplantdiary22ss3048002
 
+import android.Manifest
+import android.content.ContentValues.TAG
 import android.content.res.Configuration
+import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
@@ -25,10 +30,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.PopupProperties
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
+import androidx.core.content.PermissionChecker.PERMISSION_GRANTED
+import app.plantdiary.myplantdiary22ss3048002.dto.Photo
 import app.plantdiary.myplantdiary22ss3048002.dto.Plant
 import app.plantdiary.myplantdiary22ss3048002.dto.Specimen
 import app.plantdiary.myplantdiary22ss3048002.dto.User
 import app.plantdiary.myplantdiary22ss3048002.ui.theme.MyPlantDiary22SS3048002Theme
+import coil.compose.AsyncImage
 import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.auth.FirebaseAuthUIActivityResultContract
 import com.firebase.ui.auth.data.model.FirebaseAuthUIAuthenticationResult
@@ -36,9 +46,17 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.*
+import kotlin.collections.ArrayList
 
 class MainActivity : ComponentActivity() {
 
+    private var strUri by mutableStateOf("")
+    private var uri: Uri?= null
+
+    private lateinit var currentImagePath: String
     private val viewModel: MainViewModel by viewModel<MainViewModel>()
     private var inPlantName: String = ""
     private var selectedPlant : Plant? = null
@@ -100,57 +118,118 @@ class MainActivity : ComponentActivity() {
                 label = { Text(stringResource(R.string.datePlanted)) },
                 modifier = Modifier.fillMaxWidth()
             )
-            Button(
-                onClick = {
-                    viewModel.selectedSpecimen.apply {
-                        plantName = inPlantName
-                        plantID = selectedPlant?.let {
-                            it.id
-                        } ?: 0
-                        location = inLocation
-                        description = inDescription
-                        datePlanted = inDatePlanted
+            Row {
+                Button(
+                    onClick = {
+                        viewModel.selectedSpecimen.apply {
+                            plantName = inPlantName
+                            plantID = selectedPlant?.let {
+                                it.id
+                            } ?: 0
+                            location = inLocation
+                            description = inDescription
+                            datePlanted = inDatePlanted
+                        }
+                        viewModel.saveSpecimen()
+                        Toast.makeText(
+                            context,
+                            "Specimen: ${viewModel.selectedSpecimen.toString()}",
+                            Toast.LENGTH_LONG
+                        ).show()
                     }
-                    viewModel.saveSpecimen()
-                    Toast.makeText(
-                        context,
-                        "Specimen: ${viewModel.selectedSpecimen.toString()}",
-                        Toast.LENGTH_LONG
-                    ).show()
+                ) {
+                    Text(text = "Save")
                 }
-            ) {
-                Text(text = "Save")
-            }
 
-            Button (
-                onClick = {
-                    signOn()
+                Button (
+                    onClick = {
+                        signIn()
+                    }
+                        ) {
+
+                    Text(text = "Logon")
                 }
-                    ) {
+                Button (
+                    onClick = {
+                        takePhoto()
+                    }
+                ) {
 
-                Text(text = "Logon")
+                    Text(text = "Photo")
+                }
             }
+            AsyncImage(model = strUri, contentDescription = "Specimen Image")
         }
     }
 
-    private fun signOn() {
-        val providers = arrayListOf(
-            AuthUI.IdpConfig.EmailBuilder().build()
-        )
-        val signInIntent = AuthUI.getInstance()
-            .createSignInIntentBuilder()
-            .setAvailableProviders(providers)
-            .build()
-        signInLauncher.launch(signInIntent)
+    private fun takePhoto() {
+        if (hasCameraPermission() == PERMISSION_GRANTED && hasExternalStoragePermission() == PERMISSION_GRANTED) {
+            // take the photo
+            invokeCamera()
+        } else {
+            // request permission.
+            requestMultiplePermissionsLauncher.launch(
+                arrayOf(
+                    Manifest.permission.CAMERA,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE
+                )
+            )
+        }
     }
 
-    private val signInLauncher =
-        registerForActivityResult(FirebaseAuthUIActivityResultContract())
-        { res -> this.signInResult(res)}
+    private val requestMultiplePermissionsLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()) {
+        resultMap ->
+        var permissionGranted = false
+        resultMap.forEach {
+            if (it.value == true) {
+                permissionGranted = true
+            } else {
+                permissionGranted = false
+                return@forEach
+            }
+            if (permissionGranted) {
+                invokeCamera()
+            } else {
+                Toast.makeText(this, "Kan't take a photo without permission.  Fool.", Toast.LENGTH_LONG).show()
+            }
+        }
 
-    private fun signInResult(res: FirebaseAuthUIAuthenticationResult?) {
-        TODO("Not yet implemented")
     }
+
+    private fun invokeCamera() {
+        val file = createImageFile()
+        uri = FileProvider.getUriForFile(this, "app.plantdiary.myplantdiary22ss3048002.fileprovider", file)
+        getCameraImage.launch(uri)
+    }
+
+    private val getCameraImage =
+        registerForActivityResult(ActivityResultContracts.TakePicture()) {
+            success ->
+            if (success) {
+                Log.i(TAG, "Image Location: $uri")
+                strUri = uri.toString()
+                val photo = Photo(localUri = uri.toString())
+                viewModel.photos.add(photo)
+             } else {
+                 Log.e(TAG, "Image not saved $uri")
+            }
+        }
+
+    private fun createImageFile(): File {
+        val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
+        val imageDirectory = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+        return File.createTempFile(
+            "Specimen_${timestamp}",
+            ".jpg",
+            imageDirectory
+        ).apply {
+            currentImagePath = absolutePath
+        }
+    }
+
+    private fun hasExternalStoragePermission() = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+    private fun hasCameraPermission() = ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
 
 
     @Composable
