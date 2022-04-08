@@ -89,18 +89,25 @@ class MainViewModel(var plantService: IPlantService = PlantService()) : ViewMode
         }
     }
 
-    private fun updatePhotoDatabase(photo: Photo) {
+    internal fun updatePhotoDatabase(photo: Photo) {
         user?.let { user ->
-            val photoCollection =
+            val photoDocument =
+            if (photo.id.isEmpty()) {
+                // we need to create a new document.
                 firestore.collection("users").document(user.uid).collection("specimens")
-                    .document(selectedSpecimen.specimenID).collection("photos")
-            val handle = photoCollection.add(photo)
-            handle.addOnSuccessListener {
-                Log.i(TAG, "Successfully updated photo metadata")
-                photo.id = it.id
+                    .document(selectedSpecimen.specimenID).collection("photos").document()
+            } else {
+                // update existing document
                 firestore.collection("users").document(user.uid).collection("specimens")
                     .document(selectedSpecimen.specimenID).collection("photos").document(photo.id)
-                    .set(photo)
+            }
+            photo.id = photoDocument.id
+            val handle = photoDocument.set(photo)
+            handle.addOnSuccessListener {
+                Log.i(TAG, "Successfully updated photo metadata")
+            }
+            handle.addOnFailureListener {
+                Log.e(TAG, "Failed to update updated photo metadata  ${it.message}")
             }
         }
     }
