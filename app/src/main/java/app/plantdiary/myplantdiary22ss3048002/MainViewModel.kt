@@ -173,4 +173,22 @@ class MainViewModel(var plantService: IPlantService = PlantService()) : ViewMode
             }
         }
     }
+
+    fun delete(photo: Photo) {
+         user?.let { user ->
+            var photoCollection =
+                firestore.collection("users").document(user.uid).collection("specimens")
+                    .document(selectedSpecimen.specimenID).collection("photos")
+            photoCollection.document(photo.id).delete()
+             val uri = Uri.parse(photo.localUri)
+             val imageRef = storageReference.child("images/${user?.uid}/${uri.lastPathSegment}")
+             imageRef.delete()
+                 .addOnSuccessListener {
+                     Log.i(TAG, "Photo binary file deleted ${photo}")
+                 }
+                 .addOnFailureListener {
+                     Log.d(TAG, "Photo delete failed.  ${it.message}")
+                 }
+         }
+    }
 }

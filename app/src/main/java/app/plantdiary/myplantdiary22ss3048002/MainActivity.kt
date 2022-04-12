@@ -11,6 +11,7 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -52,8 +53,11 @@ import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.MaterialTheme.typography
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.ui.graphics.Color
 
 class MainActivity : ComponentActivity() {
 
@@ -182,34 +186,60 @@ class MainActivity : ComponentActivity() {
     @Composable
     fun EventListItem(photo : Photo) {
         var inDescription by remember(photo.id) {mutableStateOf(photo.description)}
-        Row {
-            Column(Modifier.weight(2f)) {
-                AsyncImage(model = photo.localUri, contentDescription = "Specimen Image")
-            }
-            Column(Modifier.weight(4f)) {
-                Text(text= photo.id, style=typography.h6)
-                Text(photo.dateTaken.toString(), style= typography.caption)
-                OutlinedTextField(value = inDescription,
-                    onValueChange = {inDescription = it},
-                    label  = { Text(stringResource(R.string.description))},
-                    modifier = Modifier.fillMaxWidth()
+        Card (
+            modifier = Modifier
+                .padding(horizontal = 2.dp, vertical = 2.dp)
+                .fillMaxWidth(), 
+                elevation = 8.dp,
+                backgroundColor = Color.White,
+                shape= RoundedCornerShape(15.dp),
+                border = BorderStroke(1.dp, Color.Gray)
                 )
-            }
-            Column(Modifier.weight(1f)) {
-                Button (
-                    onClick = {
-                        photo.description = inDescription
-                        viewModel.updatePhotoDatabase(photo)
-                    }
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Check,
-                        contentDescription = "Save",
-                        modifier = Modifier.padding(end = 8.dp)
+        {
+            Row {
+                Column(Modifier.weight(2f)) {
+                    AsyncImage(model = photo.localUri, contentDescription = "Specimen Image")
+                }
+                Column(Modifier.weight(4f)) {
+                    Text(text= photo.id, style=typography.h6)
+                    Text(photo.dateTaken.toString(), style= typography.caption)
+                    OutlinedTextField(value = inDescription,
+                        onValueChange = {inDescription = it},
+                        label  = { Text(stringResource(R.string.description))},
+                        modifier = Modifier.fillMaxWidth()
                     )
+                }
+                Column(Modifier.weight(1f)) {
+                    Button (
+                        onClick = {
+                            photo.description = inDescription
+                            viewModel.updatePhotoDatabase(photo)
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Check,
+                            contentDescription = "Save",
+                            modifier = Modifier.padding(end = 8.dp)
+                        )
+                    }
+                    Button (
+                        onClick = {
+                            delete(photo)
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Delete,
+                            contentDescription = "Delete",
+                            modifier = Modifier.padding(end = 8.dp)
+                        )
+                    }
                 }
             }
         }
+    }
+
+    private fun delete(photo: Photo) {
+        viewModel.delete(photo)
     }
 
 
