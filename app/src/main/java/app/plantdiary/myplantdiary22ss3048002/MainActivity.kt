@@ -13,6 +13,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.*
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.icons.Icons
@@ -50,6 +51,9 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.MaterialTheme.typography
+import androidx.compose.material.icons.filled.Check
 
 class MainActivity : ComponentActivity() {
 
@@ -158,9 +162,56 @@ class MainActivity : ComponentActivity() {
                     Text(text = "Photo")
                 }
             }
-            AsyncImage(model = strUri, contentDescription = "Specimen Image")
+            Events()
         }
     }
+
+    @Composable
+    private fun Events () {
+        val photos by viewModel.eventPhotos.observeAsState(initial = emptyList())
+        LazyColumn(contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp), modifier = Modifier.fillMaxHeight()) {
+            items (
+                items = photos,
+                itemContent = {
+                    EventListItem(photo = it)
+                }
+            )
+        }
+    }
+
+    @Composable
+    fun EventListItem(photo : Photo) {
+        var inDescription by remember(photo.id) {mutableStateOf(photo.description)}
+        Row {
+            Column(Modifier.weight(2f)) {
+                AsyncImage(model = photo.localUri, contentDescription = "Specimen Image")
+            }
+            Column(Modifier.weight(4f)) {
+                Text(text= photo.id, style=typography.h6)
+                Text(photo.dateTaken.toString(), style= typography.caption)
+                OutlinedTextField(value = inDescription,
+                    onValueChange = {inDescription = it},
+                    label  = { Text(stringResource(R.string.description))},
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+            Column(Modifier.weight(1f)) {
+                Button (
+                    onClick = {
+                        photo.description = inDescription
+                        viewModel.updatePhotoDatabase(photo)
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Check,
+                        contentDescription = "Save",
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
+                }
+            }
+        }
+    }
+
 
     private fun takePhoto() {
         if (hasCameraPermission() == PERMISSION_GRANTED && hasExternalStoragePermission() == PERMISSION_GRANTED) {
@@ -345,6 +396,7 @@ class MainActivity : ComponentActivity() {
                         }
 
                         viewModel.selectedSpecimen = specimen
+                        viewModel.fetchPhotos()
 
                     }) {
                             Text (text = specimen.toString())

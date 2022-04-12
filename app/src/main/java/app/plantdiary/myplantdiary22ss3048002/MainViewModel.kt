@@ -29,6 +29,7 @@ class MainViewModel(var plantService: IPlantService = PlantService()) : ViewMode
     val specimens: MutableLiveData<List<Specimen>> = MutableLiveData<List<Specimen>>()
     var selectedSpecimen by mutableStateOf(Specimen())
     val NEW_SPECIMEN = "New Specimen"
+    val eventPhotos : MutableLiveData<List<Photo>> = MutableLiveData<List<Photo>>()
 
     private val storageReference = FirebaseStorage.getInstance().getReference()
     private lateinit var firestore: FirebaseFirestore
@@ -88,18 +89,25 @@ class MainViewModel(var plantService: IPlantService = PlantService()) : ViewMode
         }
     }
 
-    private fun updatePhotoDatabase(photo: Photo) {
+    internal fun updatePhotoDatabase(photo: Photo) {
         user?.let { user ->
-            val photoCollection =
+            val photoDocument =
+            if (photo.id.isEmpty()) {
+                // we need to create a new document.
                 firestore.collection("users").document(user.uid).collection("specimens")
-                    .document(selectedSpecimen.specimenID).collection("photos")
-            val handle = photoCollection.add(photo)
-            handle.addOnSuccessListener {
-                Log.i(TAG, "Successfully updated photo metadata")
-                photo.id = it.id
+                    .document(selectedSpecimen.specimenID).collection("photos").document()
+            } else {
+                // update existing document
                 firestore.collection("users").document(user.uid).collection("specimens")
                     .document(selectedSpecimen.specimenID).collection("photos").document(photo.id)
-                    .set(photo)
+            }
+            photo.id = photoDocument.id
+            val handle = photoDocument.set(photo)
+            handle.addOnSuccessListener {
+                Log.i(TAG, "Successfully updated photo metadata")
+            }
+            handle.addOnFailureListener {
+                Log.e(TAG, "Failed to update updated photo metadata  ${it.message}")
             }
         }
     }
@@ -139,6 +147,30 @@ class MainViewModel(var plantService: IPlantService = PlantService()) : ViewMode
             handle.addOnSuccessListener { Log.d("Firebase", "User Saved") }
             handle.addOnFailureListener { Log.e("Firebase", "User save failed $it") }
 
+        }
+    }
+
+    fun fetchPhotos() {
+        var photoCollection = user?.let {
+            user ->
+            var photoCollection = firestore.collection("users").document(user.uid).collection("specimens")
+                .document(selectedSpecimen.specimenID).collection("photos")
+            photoCollection.addSnapshotListener {
+                    querySnapshot, firebaseFirestoreExcetion ->
+                querySnapshot?.let {
+                    querySnapshot ->
+                   var documents = querySnapshot.documents
+                    val inPhotos = ArrayList<Photo>()
+                    documents?.forEach {
+                        val photo = it.toObject(Photo::class.java)
+                        photo?.let {
+                            photo ->
+                            inPhotos.add(photo)
+                        }
+                    }
+                    eventPhotos.value = inPhotos
+                }
+            }
         }
     }
 }
